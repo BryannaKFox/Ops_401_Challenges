@@ -42,7 +42,7 @@ def encrypt_message(message, key):
 
 def decrypt_message(encrypted_message, key):
     cipher_suite = Fernet(key)
-    decrypted_message = cipher_suite.decrypt(encrypted_message).decode()
+    decrypted_message = cipher_suite.decrypt(encrypted_message.decode())
     return decrypted_message
 
 def main():
