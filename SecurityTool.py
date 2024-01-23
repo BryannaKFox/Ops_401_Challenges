@@ -3,6 +3,8 @@
 # Date of latest revision:      1/22/2024
 # Purpose:                      Security Tool
 
+#!/usr/bin/env python3
+
 from scapy.all import *
 
 def tcp_port_scan(target_ip, port_range):
