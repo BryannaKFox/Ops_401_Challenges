@@ -5,69 +5,75 @@
 
 #!/usr/bin/env python3
 
-from scapy.all import IP, TCP, ICMP
-import ipaddress
+from scapy.all import *
 
-def test_port(target_ip, port):
-    response = sr1(IP(dst=target_ip) / TCP(dport=port, flags="S"), timeout=1, verbose=0)
+def tcp_port_scan(target_ip, port_range):
+    open_ports = []
 
-    if response and response.haslayer(TCP):
-        if response[TCP].flags == 0x12:  # TCP SYN-ACK
-            send(IP(dst=target_ip) / TCP(dport=port, flags="R"), verbose=0)
-            print(f"Port {port} is open")
-        elif response[TCP].flags == 0x14:  # TCP RST-ACK
-            print(f"Port {port} is closed")
+    for port in range(port_range[0], port_range[1] + 1):
+        response = sr1(IP(dst=target_ip) / TCP(dport=port, flags="S"), timeout=1, verbose=0)
+
+        if response and response.haslayer(TCP):
+            if response[TCP].flags == 0x12:  # TCP SYN-ACK
+                open_ports.append(port)
+                print(f"Port {port} is open")
+                send(IP(dst=target_ip) / TCP(dport=port, flags="R"), verbose=0)  # Send RST to close the connection
+            elif response[TCP].flags == 0x14:  # TCP RST-ACK
+                print(f"Port {port} is closed")
+            else:
+                print(f"Port {port} is filtered and silently dropped")
         else:
             print(f"Port {port} is filtered and silently dropped")
-    else:
-        print(f"Port {port} is filtered and silently dropped")
 
-def scan_tcp_ports(target_ip, start_port, end_port):
-    for port in range(start_port, end_port + 1):
-        test_port(target_ip, port)
+    return open_ports
 
-def test_icmp_ping(ip_address):
-    try:
-        response = sr1(IP(dst=ip_address) / ICMP(), timeout=1, verbose=0)
-        if not response:
-            print(f"{ip_address} is down or unresponsive.")
-        elif response.haslayer(ICMP) and response[ICMP].type == 3 and response[ICMP].code in (1, 2, 3, 9, 10, 13):
-            print(f"{ip_address} is actively blocking ICMP traffic.")
-        else:
-            print(f"{ip_address} is responding.")
-    except Exception as e:
-        print(f"Error testing ICMP ping for {ip_address}: {e}")
+def icmp_ping_sweep(network_address):
+    ip_list = [str(ip) for ip in IP(network_address).hosts()]
 
-def scan_icmp_ping_sweep(network_address):
-    network = ipaddress.IPv4Network(network_address, strict=False)
     online_hosts = 0
 
-    for ip_address in network.hosts():
-        ip_address_str = str(ip_address)
-        if ip_address != network.network_address and ip_address != network.broadcast_address:
-            test_icmp_ping(ip_address_str)
-            online_hosts += 1
+    for ip in ip_list:
+        if ip == network_address or ip == IP(network_address).broadcast():
+            continue
 
-    print(f"Total online hosts: {online_hosts}")
+        response = sr1(IP(dst=ip) / ICMP(), timeout=1, verbose=0)
 
-# User menu
-print("1. TCP Port Range Scanner")
-print("2. ICMP Ping Sweep")
-choice = input("Enter your choice (1 or 2): ")
+        if response:
+            if response.haslayer(ICMP):
+                icmp_type = response[ICMP].type
+                icmp_code = response[ICMP].code
 
-if choice == "1":
-    # TCP Port Range Scanner mode
-    target_ip = input("Enter target IP:")
-    start_port = int(input("Enter start port: "))
-    end_port = int(input("Enter end port: "))
+                if icmp_type == 3 and icmp_code in [1, 2, 3, 9, 10, 13]:
+                    print(f"Host {ip} actively blocking ICMP traffic")
+                else:
+                    print(f"Host {ip} is responding")
+                    online_hosts += 1
+        else:
+            print(f"Host {ip} is down or unresponsive")
 
-    scan_tcp_ports(target_ip, start_port, end_port)
+    print(f"\nNumber of online hosts: {online_hosts}")
 
-elif choice == "2":
-    # ICMP Ping Sweep mode
-    network_address = input("192.168.1.221")
-    scan_icmp_ping_sweep(network_address)
+if __name__ == "__main__":
+    print("Choose mode:")
+    print("1. TCP Port Range Scanner")
+    print("2. ICMP Ping Sweep")
 
-else:
-    print("Invalid choice. Exiting.")
+    choice = int(input("Enter your choice (1 or 2): "))
 
+    if choice == 1:
+        target_ip = input("Enter target IP address: ")
+        port_range = tuple(map(int, input("Enter port range (start end): ").split()))
+
+        open_ports = tcp_port_scan(target_ip, port_range)
+
+        if open_ports:
+            print(f"\nOpen ports on {target_ip}: {open_ports}")
+        else:
+            print(f"\nNo open ports found on {target_ip}")
+
+    elif choice == 2:
+        network_address = input("Enter network address with CIDR block (e.g., 10.10.0.0/24): ")
+        icmp_ping_sweep(network_address)
+
+    else:
+        print("Invalid choice. Please choose 1 or 2.")
