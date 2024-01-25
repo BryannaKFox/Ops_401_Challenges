@@ -16,8 +16,8 @@ def tcp_port_scan(target_ip, port_range):
         if response and response.haslayer(TCP):
             if response[TCP].flags == 0x12:  # TCP SYN-ACK
                 open_ports.append(port)
-                send(IP(dst=target_ip) / TCP(dport=port, flags="R"), verbose=0)  # Send RST to close the connection
                 print(f"Port {port} is open")
+                send(IP(dst=target_ip) / TCP(dport=port, flags="R"), verbose=0)  # Send RST to close the connection
             elif response[TCP].flags == 0x14:  # TCP RST-ACK
                 print(f"Port {port} is closed")
             else:
@@ -28,8 +28,8 @@ def tcp_port_scan(target_ip, port_range):
     return open_ports
 
 if __name__ == "__main__":
-    target_ip = "10.0.2.5" #Target Ip address
-    port_range = (1, 50)  #Target ports to scan
+    target_ip = "10.0.2.5"  # Target IP address
+    port_range = (1, 50)  # Target ports to scan
 
     open_ports = tcp_port_scan(target_ip, port_range)
 
@@ -37,3 +37,4 @@ if __name__ == "__main__":
         print(f"Open ports on {target_ip}: {open_ports}")
     else:
         print(f"No open ports found on {target_ip}")
+
