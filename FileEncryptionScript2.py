@@ -3,6 +3,8 @@
 # Date of latest revision:      1/17/2024
 # Purpose:                      File Encryption Part 2 
 
+#!/usr/bin/env python3
+
 from cryptography.fernet import Fernet
 import os
 
