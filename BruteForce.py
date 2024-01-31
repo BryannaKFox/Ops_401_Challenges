@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 # Script:                       opschallange 16
 # Author:                       Bryanna Fox
 # Date of latest revision:      1/29/2024
 # Purpose:                      Brute Force Attack part 1
 
-#!/usr/bin/env python3
+
 
 import time
 
