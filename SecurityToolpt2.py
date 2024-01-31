@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 # Script:                       opschallange 12
 # Author:                       Bryanna Fox
 # Date of latest revision:      1/23/2024
 # Purpose:                      Security Tool Part 2
 
-#!/usr/bin/env python3
+
 
 from scapy.all import *
 
