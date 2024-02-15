@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+
+# Script:                       opschallange 28
+# Author:                       Bryanna Fox
+# Date of latest revision:      2/14/2024
+# Purpose:                      Event Logging Tool Part 3 (using the Brute Force Script)
+
+import logging
+from logging.handlers import RotatingFileHandler, StreamHandler
+import time
+
+# Configure logging with RotatingFileHandler and StreamHandler
+log_file = 'script.log'
+max_log_size_bytes = 1024 * 1024  # 1 MB
+backup_count = 3  # Number of backup log files
+file_handler = RotatingFileHandler(log_file, maxBytes=max_log_size_bytes, backupCount=backup_count)
+stream_handler = StreamHandler()  # StreamHandler to output to terminal
+
+# Set log levels for handlers
+file_handler.setLevel(logging.DEBUG)
+stream_handler.setLevel(logging.INFO)
+
+# Set formatters for handlers
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+# Add handlers to root logger
+logging.getLogger().addHandler(file_handler)
+logging.getLogger().addHandler(stream_handler)
+
+def offensive_mode(word_list_file):
+    try:
+        with open(word_list_file, 'r') as f:
+            for word in f:
+                word = word.strip()  
+                print(word)
+                time.sleep(0.5)  
+    except FileNotFoundError:  # Error handling: file not found
+        logging.error(f"The file '{word_list_file}' was not found.")
+    except Exception as e:  # General error handling
+        logging.error(f"An error occurred in offensive_mode: {str(e)}")
+
+def defensive_mode(search_string, word_list_file):
+    try:
+        with open(word_list_file, 'r') as f:
+            word_list = [line.strip() for line in f]
+
+        if search_string in word_list:
+            print(f"The string '{search_string}' was found in the word list.")
+        else:
+            print(f"The string '{search_string}' was not found in the word list.")
+    except FileNotFoundError:  # Error handling: file not found
+        logging.error(f"The file '{word_list_file}' was not found.")
+    except Exception as e:  # General error handling
+        logging.error(f"An error occurred in defensive_mode: {str(e)}")
+
+if __name__ == "__main__":
+    try:
+        # Log program start
+        logging.info("Program started.")
+
+        print("Select mode:")
+        print("1. Offensive; Dictionary Iterator")
+        print("2. Defensive; Password Recognized")
+        mode = input("Enter mode number: ")
+
+        if mode == "1":
+            word_list_file = input("Enter the word list file path: ")
+            offensive_mode(word_list_file)
+        elif mode == "2":
+            search_string = input("Enter the string to search: ")
+            word_list_file = input("Enter the word list file path: ")
+            defensive_mode(search_string, word_list_file)
+        else:
+            print("Invalid mode selected. Please choose 1 or 2.")
+            logging.warning("Invalid mode selected.")
+    except Exception as e:  # General error handling
+        logging.error(f"An error occurred: {str(e)}", exc_info=True)
+    finally:
+        # Log program end
+        logging.info("Program ended.")
+
+# Resources used:
+# For this script I used and added on logging to the original script that I created in from lab 16. https://github.com/BryannaKFox/Ops_401_Challenges/blob/main/BruteForce.py
+# I also added to my previous script EventLoggingToolpt1. https://github.com/BryannaKFox/Ops_401_Challenges/blob/main/EventLoggingToolpt1.py as well as the python script pt3. https://github.com/BryannaKFox/Ops_401_Challenges/blob/main/EventLoggingToolpt2.py                                                                
