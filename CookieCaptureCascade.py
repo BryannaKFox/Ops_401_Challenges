@@ -3,7 +3,7 @@
 # Script:                       opschallange 37
 # Author:                       Bryanna Fox
 # Date of latest revision:      2/27/2024
-# Purpose:                      Coockie Capture
+# Purpose:                      Cookie Capture
 
 import requests
 from bs4 import BeautifulSoup
